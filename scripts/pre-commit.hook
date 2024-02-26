@@ -17,7 +17,7 @@ CPPCHECK_suppresses="--inline-suppr harness.c \
 --suppress=returnDanglingLifetime:report.c \
 --suppress=constParameterCallback:console.c \
 --suppress=constParameterPointer:console.c"
-CPPCHECK_OPTS="-I. --enable=all --error-exitcode=1 --force $CPPCHECK_suppresses $CPPCHECK_unmatched ."
+CPPCHECK_OPTS="-I. --enable=all --check-level=exhaustive --error-exitcode=1 --force $CPPCHECK_suppresses $CPPCHECK_unmatched ."
 
 RETURN=0
 CLANG_FORMAT=$(which clang-format)
