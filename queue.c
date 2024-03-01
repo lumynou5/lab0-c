@@ -64,8 +64,7 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
     element_t *element = list_first_entry(head, element_t, list);
     list_del(&element->list);
     if (sp && element->value) {
-        strncpy(sp, element->value, bufsize);
-        sp[bufsize - 1] = '\0';
+        *stpncpy(sp, element->value, bufsize - 1) = '\0';
     }
     return element;
 }
