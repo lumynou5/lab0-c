@@ -133,7 +133,7 @@ bool q_delete_dup(struct list_head *head)
 void q_swap(struct list_head *head)
 {
     struct list_head **indir = &head->next;
-    while (*indir != head) {
+    while (*indir != head && (*indir)->next != head) {
         struct list_head *curr = *indir;
         *indir = curr->next;
         curr->next = (*indir)->next;
