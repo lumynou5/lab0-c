@@ -5,6 +5,18 @@
 
 #include "queue.h"
 
+typedef bool element_cmp_t(element_t const *lhs, element_t const *rhs);
+
+static inline bool element_greater(element_t const *lhs, element_t const *rhs)
+{
+    return strcmp(lhs->value, rhs->value) > 0;
+}
+
+static inline bool element_less(element_t const *lhs, element_t const *rhs)
+{
+    return strcmp(lhs->value, rhs->value) < 0;
+}
+
 /* Create an empty queue */
 struct list_head *q_new()
 {
@@ -179,20 +191,41 @@ void q_reverseK(struct list_head *head, int k)
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend) {}
 
+static inline int ascend_descend_impl(struct list_head *head,
+                                      element_cmp_t *cmp)
+{
+    if (!head)
+        return 0;
+
+    int i = 0;
+    element_t *pivot = NULL;
+    for (element_t *curr = list_last_entry(head, element_t, list),
+                   *safe = list_entry(curr->list.prev, element_t, list);
+         &curr->list != head;
+         curr = safe, safe = list_entry(safe->list.prev, element_t, list)) {
+        if (pivot && cmp(curr, pivot)) {
+            list_del(&curr->list);
+            q_release_element(curr);
+        } else {
+            ++i;
+            pivot = curr;
+        }
+    }
+    return i;
+}
+
 /* Remove every node which has a node with a strictly less value anywhere to
  * the right side of it */
 int q_ascend(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    return ascend_descend_impl(head, element_greater);
 }
 
 /* Remove every node which has a node with a strictly greater value anywhere to
  * the right side of it */
 int q_descend(struct list_head *head)
 {
-    // https://leetcode.com/problems/remove-nodes-from-linked-list/
-    return 0;
+    return ascend_descend_impl(head, element_less);
 }
 
 /* Merge all the queues into one sorted queue, which is in ascending/descending
