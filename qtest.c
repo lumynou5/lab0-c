@@ -172,9 +172,11 @@ static void fill_rand_string(char *buf, size_t buf_size)
     while (len < MIN_RANDSTR_LEN)
         len = rand() % buf_size;
 
-    randombytes((uint8_t *) buf, len);
+    uint64_t randstr_buf_64[MAX_RANDSTR_LEN] = {0};
+    randombytes((uint8_t *) randstr_buf_64, len * sizeof(uint64_t));
     for (size_t n = 0; n < len; n++)
-        buf[n] = charset[buf[n] % (sizeof(charset) - 1)];
+        buf[n] = charset[randstr_buf_64[n] % (sizeof(charset) - 1)];
+
     buf[len] = '\0';
 }
 
@@ -540,11 +542,6 @@ static bool do_size(int argc, char *argv[])
 
     int reps = 1;
     bool ok = true;
-    if (argc != 1 && argc != 2) {
-        report(1, "%s needs 0-1 arguments", argv[0]);
-        return false;
-    }
-
     if (argc == 2) {
         if (!get_int(argv[1], &reps))
             report(1, "Invalid number of calls to size '%s'", argv[2]);
