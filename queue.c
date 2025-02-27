@@ -189,7 +189,29 @@ void q_reverseK(struct list_head *head, int k)
 }
 
 /* Sort elements of queue in ascending/descending order */
-void q_sort(struct list_head *head, bool descend) {}
+void q_sort(struct list_head *head, bool descend)
+{
+    if (!head || list_empty(head) || list_is_singular(head))
+        return;
+
+    LIST_HEAD(left);
+    LIST_HEAD(right);
+    struct list_head *curr, *safe, *pivot = head->next;
+    list_del(pivot);
+    list_for_each_safe(curr, safe, head) {
+        if (element_less(list_entry(curr, element_t, list),
+                         list_entry(pivot, element_t, list)) != descend) {
+            list_move_tail(curr, &left);
+        } else {
+            list_move_tail(curr, &right);
+        }
+    }
+    q_sort(&left, descend);
+    q_sort(&right, descend);
+    list_add(pivot, head);
+    list_splice(&left, head);
+    list_splice_tail(&right, head);
+}
 
 static inline int ascend_descend_impl(struct list_head *head,
                                       element_cmp_t *cmp)
