@@ -5,16 +5,10 @@
 
 #include "queue.h"
 
-typedef bool element_cmp_t(element_t const *lhs, element_t const *rhs);
-
-static inline bool element_greater(element_t const *lhs, element_t const *rhs)
+static inline int element_cmp(element_t const *lhs, element_t const *rhs)
 {
-    return strcmp(lhs->value, rhs->value) > 0;
-}
-
-static inline bool element_less(element_t const *lhs, element_t const *rhs)
-{
-    return strcmp(lhs->value, rhs->value) < 0;
+    int x = strcmp(lhs->value, rhs->value);
+    return (x > 0) - (x < 0);
 }
 
 /* Create an empty queue */
@@ -199,8 +193,8 @@ void q_sort(struct list_head *head, bool descend)
     struct list_head *curr, *safe, *pivot = head->next;
     list_del(pivot);
     list_for_each_safe(curr, safe, head) {
-        if (element_less(list_entry(curr, element_t, list),
-                         list_entry(pivot, element_t, list)) != descend) {
+        if ((element_cmp(list_entry(curr, element_t, list),
+                         list_entry(pivot, element_t, list)) < 0) != descend) {
             list_move_tail(curr, &left);
         } else {
             list_move_tail(curr, &right);
@@ -213,19 +207,18 @@ void q_sort(struct list_head *head, bool descend)
     list_splice_tail(&right, head);
 }
 
-static inline int ascend_descend_impl(struct list_head *head,
-                                      element_cmp_t *cmp)
+static inline int ascend_descend_impl(struct list_head *head, int cmp)
 {
     if (!head)
         return 0;
 
-    int i = 0;
-    element_t *pivot = NULL;
-    for (element_t *curr = list_last_entry(head, element_t, list),
+    int i = 1;
+    element_t const *pivot = list_last_entry(head, element_t, list);
+    for (element_t *curr = list_entry(pivot->list.prev, element_t, list),
                    *safe = list_entry(curr->list.prev, element_t, list);
          &curr->list != head;
          curr = safe, safe = list_entry(safe->list.prev, element_t, list)) {
-        if (pivot && cmp(curr, pivot)) {
+        if (element_cmp(pivot, curr) == cmp) {
             list_del(&curr->list);
             q_release_element(curr);
         } else {
@@ -240,14 +233,14 @@ static inline int ascend_descend_impl(struct list_head *head,
  * the right side of it */
 int q_ascend(struct list_head *head)
 {
-    return ascend_descend_impl(head, element_greater);
+    return ascend_descend_impl(head, -1);
 }
 
 /* Remove every node which has a node with a strictly greater value anywhere to
  * the right side of it */
 int q_descend(struct list_head *head)
 {
-    return ascend_descend_impl(head, element_less);
+    return ascend_descend_impl(head, 1);
 }
 
 /* Merge all the queues into one sorted queue, which is in ascending/descending
