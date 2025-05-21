@@ -7,6 +7,7 @@
 
 static inline int element_cmp(element_t const *lhs, element_t const *rhs)
 {
+#if defined(__x86_64__) || defined(__i386__)
     // This implementation utilizes the CDQ instruction to get the result of
     // three-way comparison. It fills %edx with the sign bit of %eax.
     register int x asm("eax") = strcmp(lhs->value, rhs->value);
@@ -17,6 +18,10 @@ static inline int element_cmp(element_t const *lhs, element_t const *rhs)
         "cmovgl  %0, %1"
         : "+r"(x), "=r"(a));
     return a;
+#else
+    int x = strcmp(lhs->value, rhs->value);
+    return (x > 0) - (x < 0);
+#endif
 }
 
 /* Create an empty queue */
